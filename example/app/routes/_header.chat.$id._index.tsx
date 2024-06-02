@@ -53,7 +53,7 @@ export const loader = async ({
       userId,
       id,
       wsOrigin: import.meta.env.DEV
-        ? "localhost:8787"
+        ? "ws://localhost:8787"
         : context.cloudflare.env.WORKER_ORIGIN,
       initialPosts: (await swr()).posts,
     };
@@ -91,7 +91,7 @@ const usePosts = (
   initialPosts: Post[] = [],
 ) => {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const ws = useWebSocket(`ws://${wsOrigin}/chat/${id}`, (ws) => {
+  const ws = useWebSocket(`${wsOrigin}/chat/${id}`, (ws) => {
     const onconnected = () => {
       ws.send(
         JSON.stringify({
