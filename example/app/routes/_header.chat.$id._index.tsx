@@ -48,7 +48,15 @@ export const loader = async ({
       return await data;
     };
 
-    return { username, userId, id, initialPosts: (await swr()).posts };
+    return {
+      username,
+      userId,
+      id,
+      wsOrigin: import.meta.env.DEV
+        ? "localhost:8787"
+        : context.cloudflare.env.WORKER_ORIGIN,
+      initialPosts: (await swr()).posts,
+    };
   } catch {
     throw redirect(`/chat/${id}/register`);
   }
@@ -77,12 +85,13 @@ const useWebSocket = (
 };
 
 const usePosts = (
+  wsOrigin: string,
   id: string,
   user: { username: string; userId: string },
   initialPosts: Post[] = [],
 ) => {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const ws = useWebSocket(`ws://localhost:8787/chat/${id}`, (ws) => {
+  const ws = useWebSocket(`ws://${wsOrigin}/chat/${id}`, (ws) => {
     const onconnected = () => {
       ws.send(
         JSON.stringify({
@@ -130,8 +139,14 @@ const usePosts = (
 };
 
 export default function Route() {
-  const { username, userId, id, initialPosts } = useLoaderData<typeof loader>();
-  const { posts, send } = usePosts(id, { username, userId }, initialPosts);
+  const { username, userId, wsOrigin, id, initialPosts } =
+    useLoaderData<typeof loader>();
+  const { posts, send } = usePosts(
+    wsOrigin,
+    id,
+    { username, userId },
+    initialPosts,
+  );
   return (
     <main>
       <div className="mx-auto flex h-3/4 w-full max-w-2xl flex-col rounded-md bg-white p-8 shadow-md">

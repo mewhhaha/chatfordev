@@ -11,3 +11,4 @@ service = "chatfordev-worker"
 
 [vars]
 COOKIE_SECRET = "lalalalsoinsecure" # Security isn't a priority for this project, just make this encrypted with enough bytes.
+WORKER_ORIGIN = "chatfordev-worker.horrible.workers.dev"

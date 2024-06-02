@@ -8,6 +8,7 @@ import { type PlatformProxy } from "wrangler";
 export interface Env {
   CHAT: Fetcher;
   COOKIE_SECRET: string;
+  WORKER_ORIGIN: string;
 }
 
 export type Cloudflare = Omit<PlatformProxy<Env>, "dispose">;
