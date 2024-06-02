@@ -145,7 +145,7 @@ export default function Route() {
               >
                 <article
                   className={cx(
-                    "inline-block relative max-w-xs break-words rounded-lg p-2",
+                    "inline-block relative max-w-xs break-words rounded-xl px-3 pb-2 pt-4",
                     {
                       "bg-blue-500 text-white": self,
                       "bg-gray-300 text-black": !self,
