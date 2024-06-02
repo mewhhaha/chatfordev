@@ -25,21 +25,23 @@ export const loader = async ({
       const data = chat.get(`/chat/${id}/recent`).then((r) => r.json());
       const cache = await context.cloudflare.caches.open("recent");
 
+      const cacheKey = new Request(request.url, {
+        headers: {
+          "Cache-Control": "max-age=6031536000",
+          method: "GET",
+        },
+      });
+
       const revalidate = async () => {
         const { posts } = await data;
-        const cacheKey = new Request(request.url, {
-          headers: {
-            "Cache-Control": "max-age=6031536000",
-            method: "GET",
-          },
-        });
-        const response = new Response(JSON.stringify(posts), {
+
+        const response = new Response(JSON.stringify({ posts }), {
           headers: { "Content-Type": "application/json" },
         });
         await cache.put(cacheKey, response);
       };
 
-      const cached: Response = await cache.match(request);
+      const cached: Response = await cache.match(cacheKey);
       context.cloudflare.ctx.waitUntil(revalidate());
       if (cached) {
         return (await cached.json()) as Awaited<typeof data>;
@@ -48,6 +50,7 @@ export const loader = async ({
       return await data;
     };
 
+    const posts = (await swr()).posts;
     return {
       username,
       userId,
@@ -55,7 +58,7 @@ export const loader = async ({
       wsOrigin: import.meta.env.DEV
         ? "ws://localhost:8787"
         : context.cloudflare.env.WORKER_ORIGIN,
-      initialPosts: (await swr()).posts,
+      initialPosts: posts,
     };
   } catch {
     throw redirect(`/chat/${id}/register`);
@@ -182,16 +185,7 @@ export default function Route() {
                     </dd>
                     <dt className="sr-only">Posted at</dt>
                     <dd className="text-xs text-white">
-                      <time dateTime={post.date}>
-                        {new Date(post.date).toLocaleDateString("en-us", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        })}
-                      </time>
+                      <Time date={post.date} />
                     </dd>
                   </dl>
                   <p>{post.message}</p>
@@ -233,3 +227,31 @@ export default function Route() {
     </main>
   );
 }
+
+const Time = ({ date }: { date: string }) => {
+  const [appear, setAppear] = useState(false);
+
+  useEffect(() => {
+    setAppear(true);
+  }, []);
+
+  return (
+    <time
+      dateTime={date}
+      className={cx(
+        "transition-all duration-500 ease-in-out inline-block min-w-32",
+        appear ? "opacity-100 max-w-40" : "opacity-0 max-w-32",
+      )}
+    >
+      {appear &&
+        new Date(date).toLocaleDateString("en-us", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })}
+    </time>
+  );
+};
