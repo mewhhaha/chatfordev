@@ -1,0 +1,13 @@
+
+#:schema node_modules/wrangler/config-schema.json
+name = "chatfordev-web"
+pages_build_output_dir = "./build/client"
+compatibility_date = "2024-05-29"
+compatibility_flags = ["nodejs_compat"]
+
+[[services]]
+binding = "CHAT"
+service = "chatfordev-worker"
+
+[vars]
+COOKIE_SECRET = "lalalalsoinsecure" # Security isn't a priority for this project, just make this encrypted with enough bytes.
